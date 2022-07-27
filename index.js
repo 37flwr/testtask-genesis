@@ -20,13 +20,21 @@ app.get('/subscribe/:email', async (req, res) => {
         email: Yup.string().email(),
     });
     const checkForValidity = await schema.isValid({email: req.params.email})
+    const alreadyRegistered = users.includes(req.params.email)
 
-    if(checkForValidity) {
+    if(checkForValidity && !alreadyRegistered) {
         users.push(req.params.email)
-        res.send(`${req.params.email} successfully subscribed to BTC price updates`)
+        res.send(`${req.params.email} successfully subscribed to mailing`)
+    } else if(alreadyRegistered) {
+        res.status(400).send(`User with email ${req.params.email} is already subscribed to mailing`)
     } else {
         res.status(400).send('Email is not valid. Try passing a valid email which might look like youremail@mail.com')
     }
+})
+
+app.get('/mailing', (req, res) => {
+    console.log(users.join(', '))
+    res.send(users)
 
 
     // var transporter = nodemailer.createTransport({
@@ -51,10 +59,6 @@ app.get('/subscribe/:email', async (req, res) => {
     //         console.log('Email sent: ' + info.response);
     //     }
     // });
-})
-
-app.get('/mailing', (req, res) => {
-    res.send(users)
 })
 
 app.listen(3000, () => {
