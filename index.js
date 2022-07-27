@@ -8,7 +8,7 @@ app.use(express.json())
 
 const users = []
 
-app.get('/price', (req, res) => {
+app.get('/rate', (req, res) => {
     axios.get('https://blockchain.info/ticker')
         .then((response) => {
             res.send(response.data.USD)
@@ -32,33 +32,36 @@ app.get('/subscribe/:email', async (req, res) => {
     }
 })
 
-app.get('/mailing', (req, res) => {
-    console.log(users.join(', '))
-    res.send(users)
+app.get('/sendEmails', async (req, res) => {
+    if(users.length > 0) {
+        const currentPrice = await axios.get('https://blockchain.info/ticker')
+        
+        var transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: '37yaroslav@gmail.com',
+                pass: 'xaczvrexkyuvleia'
+            }
+        });
 
+        let info = await transporter.sendMail({
+            from: '"BTC Price Scanner" <37yaroslav@gmail.com', // sender address
+            to: users.join(', '), // list of receivers
+            subject: "BTC Price Rate ✔", // Subject line
+            text: `Currenct BTC price: $ ${currentPrice.data.USD.last}`, // plain text body
+            html: `<span>Currenct BTC price: $ ${currentPrice.data.USD.last}</span>`, // html body
+        });
 
-    // var transporter = nodemailer.createTransport({
-    //     service: 'gmail',
-    //     auth: {
-    //         user: 'foramazononly37@gmail.com',
-    //         pass: 'vb8m34as'
-    //     }
-    // });
-
-    // var mailOptions = {
-    //     from: 'foramazononly37@gmail.com',
-    //     to: req.params.email,
-    //     subject: 'BTC Price Update!',
-    //     text: 'currenct price...!!!!!!!!!!!!!!!!!!!!!!!!'
-    // };
-
-    // transporter.sendMail(mailOptions, function(error, info){
-    //     if (error) {
-    //         console.log(error);
-    //     } else {
-    //         console.log('Email sent: ' + info.response);
-    //     }
-    // });
+        transporter.sendMail(info, function(error, info){
+            if (error) {
+                res.status(400).send(error)
+            } else {
+                res.status(200).send('Email successfully sent to all subscribed users')
+            }
+        });
+    } else {
+        res.status(400).send('No users are subscribed to the api 😔')
+    }
 })
 
 app.listen(3000, () => {
