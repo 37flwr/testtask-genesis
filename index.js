@@ -15,25 +15,29 @@ router
         .then((response) => {
             res.status(200).json(response.data.bitcoin.uah)
         }).catch((error) => {
-            res.status(400).send('Упс... Щось пішло не так ' + error)
+            res.status(400).send('Invalid status value ' + error)
         })
 })
 
 router
 .route('/subscribe')
 .post(async (req, res) => {
-    const schema = Yup.object().shape({
-        email: Yup.string().email(),
-    });
-    const checkForValidity = await schema.isValid({email: req.body.email})
-    const alreadyRegistered = formData.includes(req.body.email)
-    if(checkForValidity && !alreadyRegistered) {
-        formData.push(req.body.email)
-        res.status(200).send(`E-mail додано`)
-    } else if(alreadyRegistered) {
-        res.status(409).send(`Юзер ${req.body.email} вже є у базі даних`)
+    if(req.body.email) {
+        const schema = Yup.object().shape({
+            email: Yup.string().email(),
+        });
+        const checkForValidity = await schema.isValid({email: req.body.email})
+        const alreadyRegistered = formData.includes(req.body.email)
+        if(checkForValidity && !alreadyRegistered) {
+            formData.push(req.body.email)
+            res.status(200).send(`E-mail додано`)
+        } else if(alreadyRegistered) {
+            res.status(409).send(`Юзер ${req.body.email} вже є у базі даних`)
+        } else {
+            res.status(400).send('Е-mail не валідний. Спробуйте ввести e-mail за типом youremail@mail.com')
+        }
     } else {
-        res.status(400).send('Е-mail не валідний. Спробуйте ввести e-mail за типом youremail@mail.com')
+        res.send('Missing or insufficient parameters')
     }
 })
 
