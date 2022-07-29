@@ -3,7 +3,6 @@ const axios = require('axios')
 const Yup = require('yup')
 const nodemailer = require('nodemailer')
 const fs = require('fs')
-const path = require('path')
 
 const app = express();
 const router = express.Router();
@@ -97,35 +96,6 @@ router
     } else {
         res.status(400).send('Нажаль немає підписаних юзерів 😔')
     }
-    // if(formData.length > 0) {
-    //     const currentPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=uah')
-        
-    //     var transporter = nodemailer.createTransport({
-    //         service: 'gmail',
-    //         auth: {
-    //             user: '37yaroslav@gmail.com',
-    //             pass: 'xaczvrexkyuvleia'
-    //         }
-    //     });
-
-    //     let info = await transporter.sendMail({
-    //         from: '"BTC Price Scanner" <37yaroslav@gmail.com', // sender address
-    //         to: formData.join(', '), // list of receivers
-    //         subject: "BTC Price Rate ✔", // Subject line
-    //         text: `Currenct BTC price: ${currentPrice.data.bitcoin.uah} UAH`, // plain text body
-    //         html: `<span>Currenct BTC price: ${currentPrice.data.bitcoin.uah} UAH</span>`, // html body
-    //     });
-
-    //     transporter.sendMail(info, function(error){
-    //         if (error) {
-    //             res.status(400).send(error)
-    //         } else {
-    //             res.status(200).send('E-mailʼи відправлено')
-    //         }
-    //     });
-    // } else {
-    //     res.status(400).send('Нажаль немає підписаних юзерів 😔')
-    // }
 })
 
 app.use(express.json());
