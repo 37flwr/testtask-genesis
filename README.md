@@ -1,6 +1,6 @@
 # Test task Genesis
 
-# Possible api calls
+## Possible api calls
 
 # Get http://localhost:3000/api/rate
 
