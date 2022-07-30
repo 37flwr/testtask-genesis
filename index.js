@@ -21,6 +21,12 @@ router
 router
 .route('/subscribe')
 .post(async (req, res) => {
+    try {
+        fs.readFileSync('users.txt', 'utf-8')
+    } catch (err) {
+        fs.closeSync(fs.openSync('users.txt', 'w'))
+    }
+
     if(!fs.readFileSync('users.txt', 'utf-8').split('\n').slice(0, -1).includes(req.body.email)) {
         if(req.body?.email) {
             const schema = Yup.object().shape({
