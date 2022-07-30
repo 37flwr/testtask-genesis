@@ -27,8 +27,8 @@ router
         fs.closeSync(fs.openSync('users.txt', 'w'))
     }
 
-    if(!fs.readFileSync('users.txt', 'utf-8').split('\n').slice(0, -1).includes(req.body.email)) {
-        if(req.body?.email) {
+    if(req.body?.email) {
+        if(!fs.readFileSync('users.txt', 'utf-8').split('\n').slice(0, -1).includes(req.body.email)) {
             const schema = Yup.object().shape({
                 email: Yup.string().email(),
             });
@@ -40,18 +40,25 @@ router
                 res.status(400).send('Е-mail не валідний. Спробуйте ввести e-mail за типом youremail@mail.com')
             }
         } else {
-            res.status(400).send('Missing or insufficient parameters')
-        } 
+            res.status(409).send(`Юзер ${req.body.email} вже є у базі даних`)
+        }
     } else {
-        res.status(409).send(`Юзер ${req.body.email} вже є у базі даних`)
+        res.status(400).send('Missing or insufficient parameters')
     }
+
 })
 
 router
-.route('/subscribe:email')
+.route('/subscribe/:email')
 .post(async (req, res) => {
-    if(!fs.readFileSync('users.txt', 'utf-8').split('\n').slice(0, -1).includes(req.params.email)) {
-        if(req.params.email) {
+    try {
+        fs.readFileSync('users.txt', 'utf-8')
+    } catch (err) {
+        fs.closeSync(fs.openSync('users.txt', 'w'))
+    }
+
+    if(req.params.email) {
+        if(!fs.readFileSync('users.txt', 'utf-8').split('\n').slice(0, -1).includes(req.params.email)) {
             const schema = Yup.object().shape({
                 email: Yup.string().email(),
             });
@@ -63,11 +70,12 @@ router
                 res.status(400).send('Е-mail не валідний. Спробуйте ввести e-mail за типом youremail@mail.com')
             }
         } else {
-            res.status(400).send('Missing or insufficient parameters')
-        } 
+            res.status(409).send(`Юзер ${req.params.email} вже є у базі даних`)
+        }
     } else {
-        res.status(409).send(`Юзер ${req.params.email} вже є у базі даних`)
+        res.status(400).send('Missing or insufficient parameters')
     }
+    
 })
 
 router
@@ -75,32 +83,36 @@ router
 .post(async (req, res) => {
     if(fs.readFileSync('users.txt', 'utf-8').split('\n').slice(0, -1).length > 0) {
         const currentPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=uah')
-        
-        var transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: '37yaroslav@gmail.com',
-                pass: 'xaczvrexkyuvleia'
-            }
-        });
 
-        let info = await transporter.sendMail({
-            from: '"BTC Price Scanner" <37yaroslav@gmail.com', // sender address
-            to: fs.readFileSync('users.txt', 'utf-8').split('\n').slice(0, -1).join(', '), // list of receivers
-            subject: "BTC Price Rate ✔", // Subject line
-            text: `Currenct BTC price: ${currentPrice.data.bitcoin.uah} UAH`, // plain text body
-            html: `<span>Currenct BTC price: ${currentPrice.data.bitcoin.uah} UAH</span>`, // html body
-        });
+        if(currentPrice) {
+            var transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: '37yaroslav@gmail.com',
+                    pass: 'xaczvrexkyuvleia'
+                }
+            });
 
-        transporter.sendMail(info, function(error){
-            if (error) {
-                res.status(400).send(error)
-            } else {
-                res.status(200).send('E-mailʼи відправлено')
-            }
-        });
+            let info = await transporter.sendMail({
+                from: '"BTC Price Scanner" <37yaroslav@gmail.com', // sender address
+                to: fs.readFileSync('users.txt', 'utf-8').split('\n').slice(0, -1).join(', '), // list of receivers
+                subject: "BTC Price Rate ✔", // Subject line
+                text: `Currenct BTC price: ${currentPrice.data.bitcoin.uah} UAH`, // plain text body
+                html: `<span>Currenct BTC price: ${currentPrice.data.bitcoin.uah} UAH</span>`, // html body
+            });
+
+            transporter.sendMail(info, function(error){
+                if (error) {
+                    res.status(400).send(error)
+                } else {
+                    res.status(200).send('E-mailʼи відправлено')
+                }
+            });
+        } else {
+            res.status(400).send('Щось пішло не так... Спробуйте пізніше')
+        }
     } else {
-        res.status(400).send('Нажаль немає підписаних юзерів 😔')
+        res.status(409).send('Нажаль немає підписаних юзерів 😔')
     }
 })
 
